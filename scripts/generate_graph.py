@@ -53,7 +53,7 @@ class BaseGeneratingGraph(GeneratingGraphInterface):
     def generate(self, csv_file):
         """
         """
-        self.parse(csv_file)
+        return self.parse(csv_file)
         
     def parse(self, csv_file):
         """
@@ -75,6 +75,7 @@ class BaseGeneratingGraph(GeneratingGraphInterface):
             with open(csv_file, 'r', newline="", encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
                 sp_logger.info("Starting read {}.".format(csv_file))
+
                 for row in reader:
                     for node_class in self.node_classes:
                         valid, node_line = self.formating_nodes(row, node_class)
@@ -89,17 +90,26 @@ class BaseGeneratingGraph(GeneratingGraphInterface):
         except Exception as e:
             sp_logger.error(str(e))
         
+        for n in nodes:
+            nodes[n] = list(nodes[n])
+
+        for r in relationships:
+            relationships[r] = list(relationships[r])
+        
         return nodes, relationships
 
 
-    def check_Id(self, line, row):
+    def check_node_id(self, line, row):
         """check primary field whether is `None`or not.
         """
-        if len(line) == 0:
-            sp_logger.warn("There is a blank line, don't write to csv file that need import to neo4j. Row is {}".format(row))
+        if len(line) == 0 or not line[0]:
             return False
-        if not line[0]:
-            sp_logger.warn("There is lack primary key, don't write to csv file that need import to neo4j. Row is {}".format(row))
+        return True
+
+    def check_rel_id(self, line, row):
+        """check primary field of relationship whether is `None` or not
+        """
+        if len(line) == 0 or not line[0] or not line[2]:
             return False
         return True
 
@@ -110,14 +120,15 @@ class BaseGeneratingGraph(GeneratingGraphInterface):
         line = []
         try:
             for header, raw_field in getattr(node_class, "fields", {}).items():
-                print(header, raw_field)
                 content = raw_field if header == 'LABEL' else row.get(raw_field)
                 content = content.replace(" ", "")
-                content = "未知" if content == "" else content
-
+                if not content:
+                    content = "未知"
                 line.append(content)
-            valid = self.check_Id(line, row)
-            print(line, row)
+            valid = self.check_node_id(line, row)
+            if not valid:
+                sp_logger.warn("This row is invalid, will not write to csv file that need import to neo4j. raw_field is {}, line is {}, Row is {}".format(raw_field, line, row))
+
         except Exception as e:
             sp_logger.error(str(e))
         return valid, tuple(line)
@@ -128,11 +139,11 @@ class BaseGeneratingGraph(GeneratingGraphInterface):
         """
         line = []
         try:
-            for header, raw_field in getattr(rel_class, "field", {}).items():
+            for header, raw_field in getattr(rel_class, "fields", {}).items():
                 content = raw_field if header == 'TYPE' else row.get(raw_field, "未知")
                 line.append(content)
 
-            valid = self.check_Id(line, row)
+            valid = self.check_rel_id(line, row)
         except Exception as e:
             sp_logger.error(str(e))
         return valid, tuple(line)
@@ -144,6 +155,21 @@ class GeneratingGraphByPy2neo(BaseGeneratingGraph):
 
     def __init__(self):
         pass
+    
+    def formating_rels(self, row, rel_class):
+        """
+        construct relationship csv file's content for per line
+        """
+        line = []
+        try:
+            for header, raw_field in getattr(rel_class, "fields", {}).items():
+                content = (raw_field,) if header == 'name' else row.get(raw_field, "未知")
+                line.append(content)
+
+            valid = self.check_rel_id(line, row)
+        except Exception as e:
+            sp_logger.error(str(e))
+        return valid, tuple(line)
 
     
 class GeneratingGraphByCsv(BaseGeneratingGraph):
@@ -157,8 +183,9 @@ class GeneratingGraphByCsv(BaseGeneratingGraph):
         """
         """
         result = super().handle(csv_path, workers=workers)
-        nodes, relationships = result
-        self.write_nodes_and_relationships(nodes, relationships, write_path)
+        for res in result:
+            nodes, relationships = res
+            self.write_nodes_and_relationships(nodes, relationships, write_path)
 
 
     def write_csv(self, dirpath, data):

@@ -11,21 +11,22 @@ from exceptions import UnImplementedError
 from py2neo import Graph, Node, Relationship
 from py2neo.bulk import create_relationships, merge_relationships
 from nodes import DangerousLevelNode, LoopholeNode, ProductNode, ManufacturerNode, ThreatNode
+from tools import spend_time
 
 
 class BaseRelationship(object):
     merge_key = tuple()
     start_node_key = tuple()
     end_node_key = tuple()
-    fields = []
+    fields = {}
+    keys = []
+    LIMIT = 10 # 10个关系执行一次事务，避免超过neo4j heap space
 
-    def __init__(self):
-        raise UnImplementedError("Interface class could't instantiate!")
-
-    def merge_relationships(self, tx, data, merge_key, start_node_key, end_node_key, keys=None):
+    @spend_time
+    def merge_relationships(self, g, data, merge_key=None, start_node_key=None, end_node_key=None, keys=None):
         """
         :param tx: Transaction in which to carry out this operation
-        :param data: node data supplied as a list of lists (if keys are provided) or a list of dictionaries (if keys is None
+        :param data: node data supplied as a list of lists (if keys are provided) or a list of dictionaries (if keys is None. [(start_node, detail, end_node)]
         :param merge_key: tuple of (label, key1, key2…) on which to merge
         :param start_node_key: optional tuple of (label, key1, key2…) on which to match relationship start nodes, matching by node ID if not provided
         :param end_node_key: optional tuple of (label, key1, key2…) on which to match relationship end nodes, matching by node ID if not provided
@@ -35,27 +36,47 @@ class BaseRelationship(object):
         merge_key = merge_key or self.merge_key
         start_node_key = start_node_key or self.start_node_key 
         end_node_key = end_node_key or self.end_node_key
-        keys = keys or self.fields
-        merge_relationships(tx, data, merge_key, keys=keys)
+        keys = keys or self.keys
+        if len(data) > self.LIMIT:
+            for small_data in self.split_data(data):
+                merge_relationships(g.auto(), small_data, merge_key,start_node_key=start_node_key,end_node_key=end_node_key, keys=keys)
+        else:
+            merge_relationships(g.auto(), data, merge_key,start_node_key=start_node_key,end_node_key=end_node_key, keys=keys)
+
+
+    def split_data(self, data):
+        """
+        split big array to several small array if data bigger than self.LIMIT
+        :param data: list.
+        """
+        splited_data = []
+        for i in range(len(data)//self.LIMIT):
+            small_data = data[i*self.LIMIT: (i+1)*self.LIMIT]
+            splited_data.append(small_data)
+
+        return splited_data
 
 
 class L2DRelationship(BaseRelationship):
     """loophole to dangerousLevel
     """
-    merge_key = ("belongsTo", "name")
-    start_node_key = LoopholeNode.merge_key
-    end_node_key = DangerousLevelNode.merge_key
-    fields = ["name"]
+    merge_key = ("belongsTo", "name") # label, property1, property2...
+    start_node_key = LoopholeNode.merge_key # label, property1, property2...
+    end_node_key = DangerousLevelNode.merge_key # label, property1, property2...
+    fields = {"from": "number", "name": "loophole_2_dangerousLevel", "to": "serverity"}
+    keys = ["name"]
 
 
 class L2PRelationship(BaseRelationship):
     """
     loophole to product
     """
-    merge_key = ("affects", "name")
+    merge_key = ("affects", "name") # label, property1, property2...
     start_node_key = LoopholeNode.merge_key
     end_node_key = DangerousLevelNode.merge_key
-    fields = ["name"]
+    fields = {"from": "number", "name": "loophole_2_product", "to": "reflectProduct"}
+    keys = ["name"]
+
 
 
 
@@ -63,27 +84,32 @@ class L2TRelationship(BaseRelationship):
     """
     loophole to threat
     """
-    merge_key = ("belongsTo", "name")
+    merge_key = ("belongsTo", "name") # label, property1, property2...
     start_node_key = LoopholeNode.merge_key
     end_node_key = DangerousLevelNode.merge_key
-    fields = ["name"]
+    fields = {"from": "number", "name": "loophole_2_threat", "to": "thread"}
+    keys = ["name"]
+
 
 
 class P2MRelationship(BaseRelationship):
     """
     product to manufacturer
     """
-    merge_key = ("belongsTo", "name")
+    merge_key = ("belongsTo", "name") # label, property1, property2...
     start_node_key = LoopholeNode.merge_key
     end_node_key = DangerousLevelNode.merge_key
-    fields = ["name"]
+    fields = {"from": "reflectProduct", "name": "product_2_manufacturer", "to": "manufacturer"}
+    keys = ["name"]
+
 
 
 class M2LRelationship(BaseRelationship):
     """
     manufacturer to loophole
     """
-    merge_key = ("reports", "name")
+    merge_key = ("reports", "name") # label, property1, property2...
     start_node_key = LoopholeNode.merge_key
     end_node_key = DangerousLevelNode.merge_key
-    fields = ["name"]
+    fields = {"from": "manufacturer", "name": "manufacturer_2_loophole", "to": "number"}
+    keys = ["name"]
