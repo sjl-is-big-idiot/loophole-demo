@@ -1,0 +1,8 @@
+# ignore data dir
+/neo4j
+# ignore csv file
+*.csv
+# ignore log file
+*.log
+
+
