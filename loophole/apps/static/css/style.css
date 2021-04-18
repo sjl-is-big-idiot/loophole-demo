@@ -1,0 +1,175 @@
+body{
+    width: 100%;
+    height: 100%;
+    background-color: #f8f8f8c2;
+}
+
+/* 项目块元素 */
+.project{
+    position: relative;
+}
+
+/* 项目标题div */
+.project-title{
+    position: absolute;
+    left: 100px;
+    top: 25px;
+    width: 150px;
+    height: 50px;
+    line-height: 50px;
+}
+/* 项目标题文字 */
+.project-title font{
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 150px;
+    height: 50px;
+    font-size: 30px;
+    color:rgb(255, 153, 0);
+}
+
+/* 表单div */
+.form{
+    position: relative;
+    width: 800px;
+    height: 100px;
+    left: 400px;
+    top: 0px;
+}
+
+/* 表单块元素 */
+.form form{
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width:100%;
+    height:100%;
+}
+
+/*输入框设置样式*/
+.input_search{
+    position: absolute;
+    width:400px;
+    height: 40px;
+    left: 10px;
+    top: 25px;
+    border:1px solid green;
+    /*提示字首行缩进*/
+    text-indent: 10px;
+    /*去掉蓝色高亮框*/
+    outline: none;
+}
+
+/* 选择框标签样式 */
+.form form .selected-title{
+    position: absolute;
+    left: 450px;
+    top: 40px;
+}
+/* 选择框div样式 */
+.selected-list {
+    position: absolute;
+    left: 500px;
+    top: 25px;
+    width: 100px;
+    height: 40px;
+    position: relative;
+}
+/* 选择框select标签样式 */
+.selected-list select{
+    /* 清除select的边框样式 */
+    border: 1px solid green;
+    /* 将select的宽高等于div的宽高 */
+    width: 100%;
+    height: 100%;
+    line-height: 40px;
+    cursor: pointer;
+    padding-left: 20px;
+    font-size: 14px;
+}
+/* submit按钮div样式 */
+.submit-btn {
+    position: absolute;
+    width: 100px;
+    height: 40px;
+    left: 650px;
+    top: 25px;
+}
+.input_submit{
+    position: absolute;
+    left: 0;
+    top: 0;
+    width:100%;
+    height: 100%;
+    background: green;
+    /*去掉submit按钮默认边框*/
+    border:0px;
+    /*改成右浮动也是可以的*/
+    color:white;/*搜索的字体颜色为白色*/
+    cursor:pointer;/*鼠标变为小手*/
+}
+
+/* echarts graph 的div样式  */
+.graph-layout {
+    position: absolute;
+    left: 10px;
+    top: 100px;
+    width: 2000px;
+    height: 650px;
+    user-select: none;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    padding: 0px;   
+    margin: 0px; 
+    border-width: 0px;
+}
+
+
+/* 一定要写在class选择器里！等会儿jquery要用到 */
+.sidebarClass {
+    /* 先给个定位，侧边栏一般是相对于浏览器定位 */
+    position: fixed;    
+    background-color: hsl(187, 29%, 95%);
+    /* position: absolute; */
+    right: -10%;    /* 侧边栏有多宽，就-多少，相当于先藏在视窗外边（从左边打开的话就换成left） */
+    width: 0%;
+    top: 0px;
+    bottom: 0px;
+    height: 100%;   /*  减去底部导航栏的高度 */
+    z-index: 9999;    /* 设置一个超大的数字覆盖所有元素，如果层叠不够或者未设置，那么侧边栏可能会被其他元素遮挡 */
+    transition: width 1s;    /* 最关键的一步！利用transition实现过渡效果，这里只需要水平过渡，所以width就行了，后面的时间几秒自行设置 */
+    border: 1px cadetblue solid;
+
+}
+
+.sidebarClass font{
+    position: absolute;
+    color: rgb(11, 197, 243);
+    font-size: 18px;
+    left: 20px;
+    top: 20px;
+}
+
+.sidebarClass ul{
+    position: absolute;
+    top: 50px;
+    left: 20px;
+    width: 60%;
+    /* margin-right: 12%; */
+}
+
+.sidebarClass ul li{
+    margin-top: 10px;
+    font-size: 16px;
+    color:cadetblue
+}
+
+/* 新建一个class，等会儿jquery要用到，原理也是利用transition：width改变就会启动过渡效果 */
+.addWidth {
+    width: 35%;    /* 设置为侧边栏宽度的2倍，才能完全露出 */
+}
+
+.analysis-table {
+    /* 默认隐藏该表格 */
+    display: none;
+}

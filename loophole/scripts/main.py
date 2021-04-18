@@ -3,7 +3,7 @@
 # @Author   : sjl
 # @CreatedAt     :  2021/03/16 11:36:51
 # @UpdatedAt     :  2021/03/16 11:36:51
-# @description: loopholes project's entry
+# @description: import csv data into neo4j
 # @Software : VSCode
 
 
@@ -14,6 +14,7 @@ from generate_graph import GeneratingGraphByCsv, GeneratingGraphByPy2neo
 from nodes import  DangerousLevelNode, LoopholeNode, ManufacturerNode, ProductNode, ThreatNode
 from relationships import L2DRelationship, L2PRelationship, L2TRelationship, M2LRelationship, P2MRelationship
 from logger import SimpleLogger
+import csv
 
 
 sp_logger = SimpleLogger(__name__, "./log/loophole.log").get_logger()
@@ -43,16 +44,21 @@ def import_with_py2neo_bulk():
         
         for node_class in ggp.node_classes:
             data = nodes.get(node_class, [])
-        #     sp_logger.info("merging {} nodes...... count={}".format(node_class, len(data)))
+            with open('nodes.csv', 'a', newline="") as f:
+                writer = csv.writer(f)
+                writer.writerows(data)
+            sp_logger.info("merging {} nodes...... count={}".format(str(node_class), len(data)))
             node_class().merge_nodes(g, data)
     
         for rel_class in ggp.relationship_classes:
+            # if rel_class in [L2PRelationship, P2MRelationship]:
             data = relationships.get(rel_class, [])
-            print(type(data))
-            sp_logger.info("merging {} relationships...... count={}".format(rel_class, len(data)))
+            with open('rels.csv', 'a', newline="") as f:
+                writer = csv.writer(f)
+                writer.writerows(data)
+            sp_logger.info("merging {} relationships...... count={}".format(str(rel_class), len(data)))
             rel_class().merge_relationships(g, data)
 
-        print(len(relationships))
 
 def run():
     """
