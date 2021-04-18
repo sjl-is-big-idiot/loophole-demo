@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+    <meta charset="UTF-8">
+    <title>漏洞展示页面</title>
+    <!-- 引入css -->
+    <!-- 清除浏览器样式 -->
+    <link rel="stylesheet" href="../../static/css/reset.css">
+    <link rel="stylesheet" href="../../static/layui/css/layui.css">
+    <link rel="stylesheet" type="text/css" href="../../static/css/style.css">
+
+    <script src="../../static/js/jquery-3.4.1.js"></script>
+    <script src="../../static/layui/layui.js"></script>
+    <script src="../../static/js/echarts.min.js"></script>
+</head>
+
+<body>
+
+    <!--漏洞搜索div块-->
+    <div class="project">
+        <div class="project-title">
+            <font>漏洞展示</font>
+        </div>
+        <!--搜索框表单div块-->
+        <div class="form">
+            <!-- <form id="search-form" method="get" action="/api/v1/search"> -->
+            <form id="search-form" action="">
+                <span>
+                    <input type="text" class="input_search" id="input_search" placeholder="请输入要搜索的内容">
+                </span>
+                <label class="selected-title">类型：</label>
+                <div class="selected-list">
+                    <select id="sourceType">
+                        <option value="product">产品</option>
+                        <option value="manufacturer">厂商</option>
+                        <option value="loophole" selected="selected">漏洞</option>
+                        <option value="threat">威胁</option>
+                        <option value="dangerous-level">危险等级</option>
+                    </select>
+                </div>
+                <div class="submit-btn">
+                    <input type="button" class="input_submit" id="submit_btn" value="查询">
+                    <!-- <input type="submit" class="input_submit" id="submit_btn" value="查询"> -->
+                </div>
+            </form>
+        </div>
+    </div>
+    <!--echarts图形div-->
+    <div id="main" class="graph-layout"></div>
+
+    <!-- 侧边栏区域的内容示例 -->
+    <div id="sideBar" class="sidebarClass">
+        <font>节点详情</font>
+        <ul id="node-properties-list"></ul>
+    </div>
+    
+    <!-- 表格 -->
+    <div class="analysis-table">
+        <table id="analysis-table"></table>
+    </div>
+    <script>
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('main'));
+    </script>
+    <script src="../../static/js/my-table.js"></script>
+    <script src="../../static/js/loophole-graph.js"></script>
+    <script src="../../static/js/my-event.js"></script>
+
+</body>
+
+</html>

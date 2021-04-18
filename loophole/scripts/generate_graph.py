@@ -121,9 +121,9 @@ class BaseGeneratingGraph(GeneratingGraphInterface):
         try:
             for header, raw_field in getattr(node_class, "fields", {}).items():
                 content = raw_field if header == 'LABEL' else row.get(raw_field)
-                content = content.replace(" ", "")
-                if not content:
-                    content = "未知"
+                # content = content.replace(" ", "")
+                # if not content:
+                #     content = "未知"
                 line.append(content)
             valid = self.check_node_id(line, row)
             if not valid:

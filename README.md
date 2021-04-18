@@ -1,4 +1,4 @@
-# 一、需求
+﻿# 一、需求
 [CNVD 国家信息安全漏洞共享平台](https://www.cnvd.org.cn)
 漏洞信息 > more > 可查看某个具体漏洞的信息。
 
@@ -79,8 +79,9 @@ Echarts的鼠标右键事件需要在Echarts的图中触发才有效果，并不
 ## 2. 关于静态页面布局
 设想的布局如下：
 ```shell
-              _______________________
-漏洞展示      |______________________|    搜索
+漏洞展示
+       _______________________      _____     ___
+漏洞   |______________________| 类型|____| 跳 |___| 查询
                 
 
 --------------------------------------------------------
@@ -103,6 +104,21 @@ HTML 有种布局方式：
 5. 网格布局
 
 ## 3. 关于neo4j
+
+常用命令：
+```cypher
+# 删除某Label的所有节点
+MATCH (n:Label) DETACH DELETE n
+
+# 删除某Label的所有关系
+MATCH p=()-[r:Label]->() DETACH DELETE r
+
+# 删除某Label的所有子图
+MATCH p=()-[r:Label]->() DETACH DELETE p
+
+# 某一类节点的数量
+MATCH (n:product) RETURN COUNT(*)
+```
 ### 3.1 运行neo4j
 采用Dcoker运行neo4j，image来自[Docker Hub neo4j官方镜像](https://hub.docker.com/_/neo4j/)。
 
@@ -116,7 +132,11 @@ docker run -dit \
     --name neo4j\
      neo4j:4.1.5
 
+     # windows中运行如下命令，弃用
      docker run -dit -p 7474:7474 -p 7687:7687 -v C:\Users\Administrator\Desktop\sunjinlong\lou-dong\neo4j/data:/data -v C:\Users\Administrator\Desktop\sunjinlong\lou-dong\data\import:/var/lib/neo4j/import --name neo4j neo4j:4.1.5
+     
+     # linux中运行如下命令，弃用
+     docker run -dit -p 7474:7474 -p 7687:7687 -v /root/myProjects/loophole/neo4j/data:/data -v /root/myProjects/loophole/data/import:/var/lib/neo4j/import --name neo4j neo4j:4.1.5
 ```
 1. 浏览器访问localhost:7474 进入neo4j web界面
 2. 使用默认用户名/密码登录, neo4j/neo4j
@@ -249,6 +269,10 @@ c. `kettle import tool`：适合超大型数据集
 1. 启动一个neo4j的容器，命令如下：
     ```shell
     docker run -dit -p 7474:7474 -p 7687:7687 -v C:\Users\Administrator\Desktop\sunjinlong\lou-dong\neo4j\data:/data -v C:\Users\Administrator\Desktop\sunjinlong\lou-dong\data\import:/var/lib/neo4j/import -v C:\Users\Administrator\Desktop\sunjinlong\lou-dong\neo4j\conf:/conf/ --name neo4j neo4j:4.1.5
+
+   # linux
+   docker run -dit -p 7474:7474 -p 7687:7687 -v /root/myProjects/loophole/neo4j/data:/data -v /root/myProjects/loophole/data/import:/var/lib/neo4j/import -v /root/myProjects/loophole/neo4j/conf:/conf/ --name neo4j neo4j:4.1.5
+
     ```
 
     根据自己的实际情况修改上面的命令。
@@ -279,9 +303,21 @@ c. `kettle import tool`：适合超大型数据集
 
    ##### 导入关系
    :auto USING PERIODIC COMMIT 10 LOAD CSV WITH HEADERS FROM "file:///loophole-2-dangerousLevel.csv" AS line MATCH (from:loophole{name:line.START_ID}),(to:dangerousLevel{name:line.END_ID})  merge (from)-[r:belongsTo{name:"loophole-2-dangerousLevel"}]-> (to) return r LIMIT 25
+
+   LOAD CSV WITH HEADERS FROM "file:///loophole-2-dangerousLevel.csv" AS line MATCH (from:loophole{name:line.START_ID}),(to:dangerousLevel{name:line.END_ID})  merge (from)-[r:belongsTo]-> (to) return r LIMIT 25
+
+   LOAD CSV WITH HEADERS FROM "file:///loophole-2-threat.csv" AS line MATCH (from:loophole{name:line.START_ID}),(to:threat{name:line.END_ID})  merge (from)-[r:has]->(to) return r LIMIT 25
+
+   LOAD CSV WITH HEADERS FROM "file:///loophole-2-product.csv" AS line MATCH (from:loophole{name:line.START_ID}),(to:product{name:line.END_ID})  merge (from)-[r:affects]->(to) return r LIMIT 25
+
+   LOAD CSV WITH HEADERS FROM "file:///product-2-manufacturer.csv" AS line MATCH (from:product{name:line.START_ID}),(to:manufacturer{name:line.END_ID})  merge (from)-[r:ownBy]->(to) return r LIMIT 25
+
+   LOAD CSV WITH HEADERS FROM "file:///manufacturer-2-loophole.csv" AS line MATCH (from:manufacturer{name:line.START_ID}),(to:loophole{name:line.END_ID})  merge (from)-[r:reports]->(to) return r LIMIT 25
      
    ```
-   在待导入的manufacturers.csv文件的hearders是: manufacturer, LABEL
+
+总感觉少了好多节点？？
+
 
 
 出现的问题：
@@ -302,6 +338,11 @@ c. `kettle import tool`：适合超大型数据集
    Perl5.30.3之前版本中存在输入验证错误漏洞，该漏洞源于程序未正确处理""PP'
    ```
 
+3. 使用`load csv`导入关系出现问题
+   
+4. 节点数量问题
+   通过`load csv`和用`py2neo`导入后的节点数量可能会不相同这是咋个回事呢？
+
 #### neo4j常用语句
 
 ```shell
@@ -320,7 +361,7 @@ MATCH (n:loophole{name:"tom"}) DEATCH DELETE n RETURN n
 ## 4. 关于Python操作neo4j
 ### 4.1 简述
 [Using Neo4j from Python](https://neo4j.com/developer/python/#py2neo-lib)
-
+[语雀雅涵/知识图谱和自然语言处理/Py2neo v4 使用笔记](https://www.yuque.com/yahan/mztcmb/lszfiv)
 上面文章提到了3种使用Python操作neo4j的包：
 
 1. neo4j: neo4j的官方包
@@ -372,6 +413,27 @@ python3
 
 
 
+
+## 5. 编写web应用程序代码
+
+使用flask作为web开发框架
+
+### 5.1 安装flask及相关库
+
+```shell
+pip3 install flask
+
+```
+
+
+### 5.2 项目布局
+
+
+### 5.3 编写代码
+
+
+
+### 5.4 测试代码
 
 
 

@@ -65,12 +65,19 @@ class BaseNode(object):
 
         return splited_data
 
+    def __str__(self):
+        return "<class '{}', at {}>".format("BaseNode", id(self))
+
+
 class DangerousLevelNode(BaseNode):
     """
     dangerousLevel node
     """
     merge_key = ("dangerousLevel", "name") # label, property1, property2...
     fields = {"name": "serverity"}  
+
+    def __str__(self):
+        return "<class '{}', at {}>".format("DangerousLevelNode", id(self))
 
 
 class LoopholeNode(BaseNode):
@@ -80,6 +87,9 @@ class LoopholeNode(BaseNode):
     merge_key = ("loophole", "name") # label, property1, property2...
     fields = {"name": "number", "title": "title", "description": "description", "solution": "formalWay", "cveId": "cveStr", "publishTime": "openTime"}    
 
+    def __str__(self):
+        return "<class '{}', at {}>".format("LoopholeNode", id(self))
+
 
 class ManufacturerNode(BaseNode):
     """
@@ -87,6 +97,9 @@ class ManufacturerNode(BaseNode):
     """
     merge_key = ("manufacturer", "name") # label, property1, property2...
     fields = {"name": "manufacturer"}     
+
+    def __str__(self):
+        return "<class '{}', at {}>".format("ManufacturerNode", id(self))
 
 
 class ProductNode(BaseNode):
@@ -96,10 +109,15 @@ class ProductNode(BaseNode):
     merge_key = ("product", "name") # label, property1, property2...
     fields = {"name": "reflectProduct"}     
 
+    def __str__(self):
+        return "<class '{}', at {}>".format("ProductNode", id(self))
 
 class ThreatNode(BaseNode):
     """
     threat node
     """
     merge_key = ("threat", "name") # label, property1, property2...
-    fields = {"name": "thread"}     
+    fields = {"name": "thread"}    
+
+    def __str__(self):
+        return "<class '{}', at {}>".format("ThreatNode", id(self)) 
