@@ -7,16 +7,25 @@
 # @Software : VSCode
 
 from . import auth
-from flask import request, g, current_app
+from flask import request, g, current_app, render_template, jsonify
 from apps.db import get_db
 
+# page route
 
-@auth.route('/register', methods=["GET", "POST"])
+@auth.route('/<string:page_name>.html', methods=['GET', 'POST'])
+def page(page_name):
+    """return all html pages"""
+    return render_template(page_name + ".html")
+
+# auth route
+
+@auth.route('/register', methods=["POST"])
 def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        db = get_db()
+        print(username, password)
+        # db = get_db()
         error = None
 
         if not username:
@@ -26,13 +35,16 @@ def register():
         else:
             # TODO
             pass
+            
+    return jsonify({"username": username, "password": password, "message": error})
+
 
 @auth.route('/login', methods=['POST'])
 def login():
     # TODO
-    pass
+    return "this is a test view function."
 
 @auth.route('/logout', methods=['PUT'])
 def logout():
     # TODO
-    pass
+    return "this is a test view function."
